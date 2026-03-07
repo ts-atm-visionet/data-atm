@@ -340,7 +340,7 @@ td{padding:11px 14px;vertical-align:middle}
       <div class="fg"><label>Bank ★</label>
         <select id="fBank">
           <option value="">-- Pilih Bank --</option>
-          <option>Nobu</option><option>Mayapada</option><option>CCBI</option>
+          <option>NOBU</option><option>Mayapada</option><option>CCBI</option>
           <option>Lainnya</option>
         </select></div>
       <div class="fg"><label>ID ATM ★</label><input type="text" id="fId" placeholder="123456"></div>
@@ -472,7 +472,7 @@ function doFilter(){
 function clearQ(){ document.getElementById('qid').value=''; document.getElementById('qbank').value=''; doFilter(); }
 
 function bbCls(bank){
-  return 'bb '+(({'NOBU':'bb-Nobu','Mayapada':'bb-Mayapada','CCBI':'bb-CCBI'})[bank]||'bb-def');
+  return 'bb '+(({'NOBU':'bb-NOBU','Mayapada':'bb-Mayapada','CCBI':'bb-CCBI'})[bank]||'bb-def');
 }
 
 function renderTable(data){
@@ -752,6 +752,7 @@ function toast(msg,type){
 </script>
 </body>
 </html>
+
 
 
 
