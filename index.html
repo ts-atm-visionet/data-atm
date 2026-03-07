@@ -472,7 +472,7 @@ function doFilter(){
 function clearQ(){ document.getElementById('qid').value=''; document.getElementById('qbank').value=''; doFilter(); }
 
 function bbCls(bank){
-  return 'bb '+(({'BRI':'bb-BRI','BCA':'bb-BCA','Mandiri':'bb-Mandiri','BNI':'bb-BNI','BTN':'bb-BTN','BSI':'bb-BSI'})[bank]||'bb-def');
+  return 'bb '+(({'NOBU':'bb-Nobu','Mayapada':'bb-Mayapada','CCBI':'bb-CCBI'})[bank]||'bb-def');
 }
 
 function renderTable(data){
@@ -752,6 +752,7 @@ function toast(msg,type){
 </script>
 </body>
 </html>
+
 
 
 
