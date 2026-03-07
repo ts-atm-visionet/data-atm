@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>TS ATM Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg0:#03080f;--bg1:#060f1c;--bg2:#0b1a2e;--bg3:#0f2240;--bg4:#132a4e;
+  --blue:#00b4ff;--blue-dim:#0080c0;--blue-glow:rgba(0,180,255,0.18);
+  --amber:#f5a623;--amber-glow:rgba(245,166,35,0.18);
+  --green:#00e676;--green-glow:rgba(0,230,118,0.18);
+  --red:#ff1744;--red-glow:rgba(255,23,68,0.18);
+  --cyan:#18ffff;--orange:#ff6d00;
+  --text:#e8f4ff;--text2:#8aadc8;--text3:#3d6480;
+  --border:rgba(0,180,255,0.12);--border2:rgba(0,180,255,0.28);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg0);color:var(--text);font-family:'Barlow Condensed',sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,180,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,180,255,0.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 700px 500px at 0% 0%,rgba(0,80,200,0.07) 0%,transparent 70%),radial-gradient(ellipse 600px 400px at 100% 100%,rgba(245,166,35,0.05) 0%,transparent 70%);pointer-events:none;z-index:0}
+.z1{position:relative;z-index:1}
+
+/* LOGIN */
+#loginScreen{position:fixed;inset:0;background:var(--bg0);display:flex;align-items:center;justify-content:center;z-index:900;padding:16px}
+.lcard{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 0 60px rgba(0,180,255,0.08),0 24px 60px rgba(0,0,0,0.7);position:relative;overflow:hidden}
+.lcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--blue),var(--amber),transparent)}
+.lhead{text-align:center;margin-bottom:28px}
+.lico{width:72px;height:72px;background:linear-gradient(135deg,#003888,#00b4ff);border-radius:18px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 8px 32px rgba(0,100,255,0.4)}
+.lhead h2{font-size:26px;font-weight:900;letter-spacing:3px;color:var(--blue);text-transform:uppercase}
+.lhead p{font-size:11px;color:var(--text3);letter-spacing:3px;font-family:'JetBrains Mono',monospace;margin-top:3px}
+.ltabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:24px;background:var(--bg1);padding:4px;border-radius:10px}
+.ltab{border:none;cursor:pointer;padding:10px;border-radius:7px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .2s;background:transparent;color:var(--text3)}
+.ltab.on{background:var(--bg3);color:var(--amber);border:1px solid rgba(245,166,35,0.3);box-shadow:0 2px 12px rgba(0,0,0,0.4)}
+.lg{margin-bottom:16px}
+.lg label{display:block;font-size:10px;font-weight:700;letter-spacing:2.5px;color:var(--text3);text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-bottom:7px}
+.lg input{width:100%;padding:12px 16px;background:var(--bg1);border:1.5px solid var(--border2);color:var(--text);border-radius:10px;font-size:16px;font-family:'Barlow Condensed',sans-serif;outline:none;transition:all .2s}
+.lg input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,180,255,0.12);background:var(--bg0)}
+.btn-login{width:100%;padding:14px;background:linear-gradient(135deg,#004cb5,#00aaff);border:none;border-radius:10px;color:#fff;font-size:17px;font-weight:800;font-family:'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all .2s;box-shadow:0 6px 24px rgba(0,120,255,0.4)}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,120,255,0.5)}
+.lerr{background:var(--red-glow);border:1px solid rgba(255,23,68,0.4);color:var(--red);padding:10px 14px;border-radius:8px;font-size:13px;margin-top:12px;text-align:center;display:none;font-family:'JetBrains Mono',monospace}
+.lerr.on{display:block}
+
+/* HEADER */
+header{background:rgba(6,15,28,0.97);border-bottom:2px solid rgba(0,180,255,0.25);backdrop-filter:blur(20px);position:sticky;top:0;z-index:200}
+.hinner{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:60px;max-width:1800px;margin:0 auto;gap:12px}
+.hbrand{display:flex;align-items:center;gap:10px}
+.hlogo{width:38px;height:38px;background:linear-gradient(135deg,#002d8a,#00aaff);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 16px rgba(0,150,255,0.35);flex-shrink:0}
+.hbrand-t h1{font-size:19px;font-weight:900;letter-spacing:2px;color:var(--blue);text-transform:uppercase;line-height:1}
+.hbrand-t p{font-size:9px;color:var(--text3);letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-top:2px}
+.hclock{display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2)}
+.hlive{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hright{display:flex;align-items:center;gap:8px}
+.rbadge{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.rbadge.admin{background:rgba(255,109,0,0.15);border:1.5px solid rgba(255,109,0,0.5);color:var(--orange)}
+.rbadge.tech{background:var(--blue-glow);border:1.5px solid rgba(0,180,255,0.4);color:var(--blue)}
+.btn-out{background:rgba(255,23,68,0.1);border:1.5px solid rgba(255,23,68,0.4);color:var(--red);padding:6px 13px;border-radius:7px;cursor:pointer;font-size:12px;font-family:'JetBrains Mono',monospace;transition:all .2s}
+.btn-out:hover{background:rgba(255,23,68,0.22)}
+
+/* STATS */
+.statsbar{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);background:var(--bg1)}
+.si{padding:14px 20px;display:flex;align-items:center;gap:12px;border-right:1px solid var(--border);transition:background .15s;cursor:default}
+.si:last-child{border-right:none}
+.si:hover{background:var(--bg2)}
+.sico{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.sico.bl{background:var(--blue-glow);border:1.5px solid rgba(0,180,255,0.35)}
+.sico.gr{background:var(--green-glow);border:1.5px solid rgba(0,230,118,0.35)}
+.sico.am{background:var(--amber-glow);border:1.5px solid rgba(245,166,35,0.35)}
+.sico.cy{background:rgba(24,255,255,0.1);border:1.5px solid rgba(24,255,255,0.35)}
+.sinf label{font-size:9px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;display:block}
+.sval{font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1.1}
+.sval.bl{color:var(--blue)}.sval.gr{color:var(--green)}.sval.am{color:var(--amber)}.sval.cy{color:var(--cyan)}
+
+/* MAIN */
+.main{padding:20px;max-width:1800px;margin:0 auto}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.ttitle{font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text2);font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:8px;flex:1;min-width:120px}
+.ttitle::before{content:'';width:3px;height:14px;background:var(--amber);border-radius:2px;box-shadow:0 0 10px var(--amber);flex-shrink:0}
+.srow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sw{position:relative}
+.sw .ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none}
+input[type=text],select{background:var(--bg2);border:1.5px solid var(--border2);color:var(--text);padding:9px 12px 9px 32px;border-radius:8px;font-size:15px;font-family:'Barlow Condensed',sans-serif;outline:none;transition:all .2s;height:40px}
+select{padding:0 12px}
+input[type=text]:focus,select:focus{border-color:var(--blue);background:var(--bg3);box-shadow:0 0 0 3px rgba(0,180,255,0.1)}
+input[type=text]::placeholder{color:var(--text3)}
+select option{background:var(--bg2)}
+.btn{padding:0 16px;height:40px;border-radius:8px;border:none;cursor:pointer;font-size:15px;font-weight:700;font-family:'Barlow Condensed',sans-serif;display:inline-flex;align-items:center;gap:6px;transition:all .2s;letter-spacing:.5px;white-space:nowrap}
+.b-blue{background:linear-gradient(135deg,#0050b5,#00aaff);color:#fff;box-shadow:0 4px 16px rgba(0,140,255,0.3)}
+.b-blue:hover{box-shadow:0 6px 22px rgba(0,140,255,0.5);transform:translateY(-1px)}
+.b-green{background:linear-gradient(135deg,#006035,#00c864);color:#fff;box-shadow:0 4px 16px rgba(0,200,100,0.3)}
+.b-green:hover{box-shadow:0 6px 22px rgba(0,200,100,0.5);transform:translateY(-1px)}
+.b-ghost{background:transparent;border:1.5px solid var(--border2);color:var(--text2)}
+.b-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.b-amber{background:linear-gradient(135deg,#7a4500,#f5a623);color:#000;font-weight:800;box-shadow:0 4px 16px rgba(245,166,35,0.3);padding:0 12px;height:34px;font-size:13px}
+.b-amber:hover{box-shadow:0 6px 22px rgba(245,166,35,0.5)}
+.b-red{background:linear-gradient(135deg,#800020,#ff1744);color:#fff;box-shadow:0 4px 16px rgba(255,23,68,0.3);padding:0 12px;height:34px;font-size:13px}
+.b-red:hover{box-shadow:0 6px 22px rgba(255,23,68,0.5)}
+.b-view{background:transparent;border:1.5px solid var(--border2);color:var(--text2);padding:0 10px;height:34px;font-size:13px}
+.b-view:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* BANNER */
+.banner{background:rgba(245,166,35,0.08);border:1.5px solid rgba(245,166,35,0.4);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);line-height:1.9;display:none}
+
+/* TABLE */
+.tcard{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
+.thead-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);background:rgba(0,180,255,0.04)}
+.tcount{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.tcount span{color:var(--blue);font-weight:700}
+.tupd{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:860px}
+thead tr{background:rgba(0,180,255,0.07);border-bottom:2px solid var(--border2)}
+th{padding:11px 14px;text-align:left;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+tbody tr{border-bottom:1px solid rgba(0,180,255,0.07);transition:background .12s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(0,180,255,0.06)}
+td{padding:11px 14px;vertical-align:middle}
+
+/* BANK BADGES */
+.bb{display:inline-flex;align-items:center;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+.bb-NOBU{background:#003caa20;border:1.5px solid #0060ff55;color:#e90a15}
+.bb-MAYAPADA{background:#00806020;border:1.5px solid #00cc9055;color:#6b0ae9}
+.bb-CCBI{background:#c08000;color:#000;border:1.5px solid #3babf7}
+
+.mid{font-family:'JetBrains Mono',monospace;color:var(--blue);font-size:13px;font-weight:700;letter-spacing:.5px}
+.mip{font-family:'JetBrains Mono',monospace;color:var(--green);font-size:13px;font-weight:600}
+.msub{font-family:'JetBrains Mono',monospace;color:var(--text2);font-size:12px}
+.mgw{font-family:'JetBrains Mono',monospace;color:#80c8ff;font-size:13px}
+.mhost{font-family:'JetBrains Mono',monospace;color:var(--amber);font-size:13px;font-weight:700}
+.mport{display:inline-block;padding:3px 9px;background:rgba(0,230,118,0.12);border:1.5px solid rgba(0,230,118,0.35);border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700}
+.mloc{color:var(--text2);font-size:13px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acts{display:flex;gap:5px;align-items:center}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty .ei{font-size:48px;margin-bottom:10px;opacity:.4}
+.empty p{font-size:15px}
+
+/* CARDS MOBILE */
+.cview{display:none}
+.ac{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+.ac-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(0,180,255,0.06);border-bottom:1px solid var(--border)}
+.ac-body{padding:12px 14px}
+.ac-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px}
+.ac-grid:last-child{margin-bottom:0}
+.af{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:8px 10px}
+.af label{font-size:9px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;display:block;margin-bottom:3px}
+.af .av{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av.bl{color:var(--blue)}.av.gr{color:var(--green)}.av.am{color:var(--amber)}.av.cy{color:#80c8ff}.av.tx{color:var(--text2)}
+.ac-foot{display:flex;gap:6px;padding:10px 14px;border-top:1px solid var(--border);background:rgba(0,0,0,0.25)}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .22s}
+.mo.on{opacity:1;pointer-events:all}
+.mbox{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px;width:100%;max-width:600px;box-shadow:0 30px 80px rgba(0,0,0,0.8),0 0 0 1px rgba(0,180,255,0.08);transform:scale(.94) translateY(18px);transition:transform .22s;max-height:92vh;overflow-y:auto}
+.mo.on .mbox{transform:scale(1) translateY(0)}
+.mbox::before{content:'';display:block;height:2px;border-radius:2px;margin-bottom:22px;background:linear-gradient(90deg,var(--blue),var(--amber),transparent)}
+.mhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.mtitle{font-size:15px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--blue);font-family:'JetBrains Mono',monospace}
+.mcls{background:rgba(255,255,255,0.05);border:1px solid var(--border2);color:var(--text3);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.mcls:hover{border-color:var(--red);color:var(--red)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg.full{grid-column:1/-1}
+.fg label{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.fg input,.fg select{padding:10px 13px;width:100%;height:auto;background:var(--bg1);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:15px;font-family:'Barlow Condensed',sans-serif;outline:none;transition:all .2s}
+.fg select{padding:10px 13px}
+.fg input:focus,.fg select:focus{border-color:var(--blue);background:var(--bg0);box-shadow:0 0 0 3px rgba(0,180,255,0.1)}
+.mfoot{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:18px;border-top:1px solid var(--border)}
+
+/* CONFIRM */
+.cbox{max-width:380px;text-align:center}
+.cico{font-size:50px;display:block;margin-bottom:12px}
+.ctitle{font-size:22px;font-weight:800;color:var(--red);margin-bottom:8px}
+.ctext{color:var(--text2);font-size:14px;line-height:1.6;margin-bottom:22px}
+
+/* DETAIL */
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.di{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.di label{font-size:9px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;display:block;margin-bottom:4px}
+.di .dv{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;word-break:break-all}
+.dv.bl{color:var(--blue)}.dv.gr{color:var(--green)}.dv.am{color:var(--amber)}.dv.cy{color:#80c8ff}.dv.tx{color:var(--text)}
+
+/* LOADING */
+#lov{position:fixed;inset:0;background:rgba(3,8,15,0.92);z-index:800;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+#lov.on{opacity:1;pointer-events:all}
+.spin{width:42px;height:42px;border:3px solid rgba(0,180,255,0.1);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ltxt{font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace;letter-spacing:2px}
+
+/* TOAST */
+#ts{position:fixed;bottom:20px;right:20px;z-index:1000;display:flex;flex-direction:column;gap:7px}
+.toast{padding:12px 16px;border-radius:9px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;animation:tin .3s ease;box-shadow:0 8px 24px rgba(0,0,0,0.5);max-width:300px}
+@keyframes tin{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+.tok{background:rgba(0,200,100,0.15);border:1.5px solid rgba(0,200,100,0.45);color:var(--green)}
+.terr{background:var(--red-glow);border:1.5px solid rgba(255,23,68,0.45);color:var(--red)}
+.tinf{background:var(--blue-glow);border:1.5px solid rgba(0,180,255,0.4);color:var(--blue)}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .hclock{display:none}
+  .hbrand-t p{display:none}
+  .statsbar{grid-template-columns:repeat(2,1fr)}
+  .si{padding:10px 14px;gap:10px}
+  .sval{font-size:22px}
+  .sico{width:40px;height:40px;font-size:19px}
+  .main{padding:12px}
+  .toolbar{gap:8px;flex-direction:column;align-items:stretch}
+  .ttitle{font-size:11px}
+  .tcard{display:none}
+  .cview{display:block}
+  .srow{flex:1;flex-wrap:wrap}
+  .srow input[type=text]{flex:1;min-width:0}
+  #btnAdd{width:100%}
+  .fgrid{grid-template-columns:1fr}
+  .dgrid{grid-template-columns:1fr}
+  #ts{left:12px;right:12px;bottom:12px}
+  .toast{max-width:100%}
+  .lcard{padding:28px 20px}
+}
+@media(max-width:400px){
+  .si{flex-direction:column;align-items:flex-start;padding:10px 12px;gap:4px}
+  .hinner{padding:0 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="lcard">
+    <div class="lhead">
+      <img src="https://i.ibb.co.com/mC9Sg3tr/ts-atm.png" alt="Atm" style="width:90px;height:90px;filter:drop-shadow(0 4px 12px rgba(201,162,39,.4))">
+      <h2>TS ATM Monitor</h2>
+      <p>Data Management System</p>
+    </div>
+    <div class="ltabs">
+      <button class="ltab on" onclick="setTab('tech',this)">🔧 Teknisi</button>
+      <button class="ltab" onclick="setTab('adm',this)">🔐 Admin</button>
+    </div>
+    <div id="techF">
+      <div class="lg"><label>Kode Akses Teknisi</label>
+        <input type="password" id="tp" placeholder="Masukkan kode teknisi" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+    </div>
+    <div id="admF" style="display:none">
+      <div class="lg"><label>Kode Akses Admin</label>
+        <input type="password" id="ap" placeholder="Masukkan kode admin" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+    </div>
+    <button class="btn-login" onclick="doLogin()">🔓 MASUK SISTEM</button>
+    <div class="lerr" id="lerr">❌ Kode akses tidak valid. Coba lagi.</div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="lov"><div class="spin"></div><div class="ltxt" id="ltxt">MEMUAT...</div></div>
+
+<!-- TOASTS -->
+<div id="ts"></div>
+
+<!-- APP -->
+<div id="app" class="z1" style="display:none">
+  <header>
+    <div class="hinner">
+      <div class="hbrand">
+        <div class="hlogo">🏧</div>
+        <div class="hbrand-t"><h1>TS ATM Monitor</h1><p>Data Management System</p></div>
+      </div>
+      <div class="hclock">
+        <div class="hlive"></div>
+        <span id="clk">--:--:--</span>&nbsp;|&nbsp;<span id="dt">-</span>
+      </div>
+      <div class="hright">
+        <span class="rbadge" id="rb">-</span>
+        <button class="btn-out" onclick="doLogout()">⏻ Keluar</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="statsbar">
+    <div class="si"><div class="sico bl">🏧</div><div class="sinf"><label>Total ATM</label><div class="sval bl" id="sT">-</div></div></div>
+    <div class="si"><div class="sico gr">🏦</div><div class="sinf"><label>Total Bank</label><div class="sval gr" id="sB">-</div></div></div>
+    <div class="si"><div class="sico am">📍</div><div class="sinf"><label>Lokasi</label><div class="sval am" id="sL">-</div></div></div>
+    <div class="si"><div class="sico cy">🖥️</div><div class="sinf"><label>Host Unik</label><div class="sval cy" id="sH">-</div></div></div>
+  </div>
+
+  <div class="main">
+    <div class="banner" id="banner">
+      ⚠️ <strong>SCRIPT URL BELUM DIKONFIGURASI</strong><br>
+      Edit variabel <code>SCRIPT_URL</code> di script dengan URL Google Apps Script Anda agar aplikasi dapat membaca dan menyimpan data ke Google Sheets.
+    </div>
+
+    <div class="toolbar">
+      <div class="ttitle">▌ Data ATM Monitoring</div>
+      <div class="srow">
+        <div class="sw"><span class="ic">🔍</span>
+          <input type="text" id="qid" placeholder="Cari ID ATM..." oninput="doFilter()" style="width:155px">
+        </div>
+        <select id="qbank" onchange="doFilter()" style="width:150px;padding:0 12px">
+          <option value="">Semua Bank</option>
+        </select>
+        <button class="btn b-ghost" onclick="clearQ()" style="padding:0 12px">✕ Reset</button>
+        <button class="btn b-blue" onclick="load()">↺ Refresh</button>
+      </div>
+      <button class="btn b-green" id="btnAdd" onclick="openAdd()" style="display:none">＋ Tambah ATM</button>
+    </div>
+
+    <!-- TABLE desktop -->
+    <div class="tcard">
+      <div class="thead-bar">
+        <div class="tcount">Tampil <span id="rc">0</span> / <span id="rt">0</span> data</div>
+        <div class="tupd" id="upd">-</div>
+      </div>
+      <div class="tscroll">
+        <table>
+          <thead><tr>
+            <th>#</th><th>BANK</th><th>ID ATM</th><th>LOKASI</th>
+            <th>IP ATM</th><th>SUBNET</th><th>GATEWAY</th><th>IP HOST</th><th>PORT</th><th>AKSI</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CARDS mobile -->
+    <div class="cview" id="cview"></div>
+  </div>
+</div>
+
+<!-- FORM MODAL -->
+<div class="mo" id="mForm">
+  <div class="mbox">
+    <div class="mhead"><div class="mtitle" id="mFT">TAMBAH ATM</div><button class="mcls" onclick="closeM('mForm')">✕</button></div>
+    <div class="fgrid">
+      <div class="fg"><label>Bank ★</label>
+        <select id="fBank">
+          <option value="">-- Pilih Bank --</option>
+          <option>NOBU</option><option>Mayapada</option><option>CCBI</option>
+          <option>Lainnya</option>
+        </select></div>
+      <div class="fg"><label>ID ATM ★</label><input type="text" id="fId" placeholder="ATMID-123456"></div>
+      <div class="fg full"><label>Lokasi ATM ★</label><input type="text" id="fLok" placeholder="Jl. Sudirman No.1, Jakarta Pusat"></div>
+      <div class="fg"><label>IP ATM ★</label><input type="text" id="fIp" placeholder="192.168.1.100"></div>
+      <div class="fg"><label>Subnet Mask</label><input type="text" id="fSub" placeholder="255.255.255.0"></div>
+      <div class="fg"><label>Gateway</label><input type="text" id="fGw" placeholder="192.168.1.1"></div>
+      <div class="fg"><label>IP Host</label><input type="text" id="fHost" placeholder="10.0.0.1"></div>
+      <div class="fg"><label>Port</label><input type="text" id="fPort" placeholder="8080"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn b-ghost" onclick="closeM('mForm')">Batal</button>
+      <button class="btn b-green" onclick="doSubmit()" id="btnSub">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="mo" id="mDet">
+  <div class="mbox">
+    <div class="mhead"><div class="mtitle">📋 DETAIL ATM</div><button class="mcls" onclick="closeM('mDet')">✕</button></div>
+    <div id="detC"></div>
+    <div class="mfoot"><button class="btn b-ghost" onclick="closeM('mDet')">Tutup</button></div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="mo" id="mConf">
+  <div class="mbox cbox">
+    <span class="cico">⚠️</span>
+    <div class="ctitle">Hapus Data ATM?</div>
+    <div class="ctext" id="cTxt">Data akan dihapus permanen.</div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn b-ghost" onclick="closeM('mConf')" style="min-width:90px">Batal</button>
+      <button class="btn b-red" onclick="doDel()" style="min-width:90px">🗑️ Hapus</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// ★ GANTI DENGAN URL GOOGLE APPS SCRIPT ANDA ★
+// ============================================================
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGkdOXtq-VX_XIUAK3peIJ7RyXb-6o1CGqtpGVPuRuDHQV6LBsFzJg0AKZVLAeo5Ld/exec';
+
+// ★ GANTI KODE AKSES SESUAI KEBUTUHAN ★
+const PASS = { tech:'teknisiATM', admin:'TSATM' };
+// ============================================================
+
+let role=null, tab='tech', all=[], filt=[], editing=null, delT=null;
+
+/* ---- LOGIN ---- */
+function setTab(t, el) {
+  tab=t;
+  document.querySelectorAll('.ltab').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('techF').style.display = t==='tech'?'block':'none';
+  document.getElementById('admF').style.display  = t==='adm' ?'block':'none';
+  document.getElementById('lerr').classList.remove('on');
+}
+
+function doLogin() {
+  const v = tab==='tech' ? document.getElementById('tp').value : document.getElementById('ap').value;
+  const ok = tab==='tech' ? v===PASS.tech : v===PASS.admin;
+  if(ok){ role=tab==='adm'?'admin':'tech'; startApp(); }
+  else   document.getElementById('lerr').classList.add('on');
+}
+
+function startApp() {
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  const rb=document.getElementById('rb');
+  if(role==='admin'){ rb.textContent='🔐 ADMIN'; rb.className='rbadge admin'; document.getElementById('btnAdd').style.display='flex'; }
+  else              { rb.textContent='🔧 TEKNISI'; rb.className='rbadge tech'; document.getElementById('btnAdd').style.display='none'; }
+  if(SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE') document.getElementById('banner').style.display='block';
+  setInterval(()=>{
+    const n=new Date();
+    document.getElementById('clk').textContent=n.toLocaleTimeString('id-ID');
+    document.getElementById('dt').textContent=n.toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  },1000);
+  load();
+}
+
+function doLogout(){
+  role=null; all=[]; filt=[];
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('tp').value=''; document.getElementById('ap').value='';
+}
+
+/* ---- DATA ---- */
+async function load() {
+  if(SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){ toast('⚠️ Konfigurasi SCRIPT_URL terlebih dahulu','err'); renderTable([]); return; }
+  showL('MEMUAT DATA ATM...');
+  try {
+    const r=await fetch(SCRIPT_URL+'?action=getAll', { redirect:'follow' });
+    const txt=await r.text();
+    let j;
+    try { j=JSON.parse(txt); } catch(pe){ throw new Error('Respons bukan JSON. Pastikan deployment sudah benar.\n'+txt.substring(0,200)); }
+    if(!j.success) throw new Error(j.error||'Gagal memuat');
+    all=j.data; filt=[...all];
+    doFilter(); updateStats(); updateBankSel();
+    document.getElementById('upd').textContent='Update: '+new Date().toLocaleTimeString('id-ID');
+    toast('✅ '+all.length+' data ATM dimuat','ok');
+  } catch(e){ toast('❌ '+e.message,'err'); renderTable([]); }
+  finally{ hideL(); }
+}
+
+function updateStats(){
+  document.getElementById('sT').textContent=all.length;
+  document.getElementById('sB').textContent=new Set(all.map(d=>d.Bank)).size;
+  document.getElementById('sL').textContent=new Set(all.map(d=>d.Lokasi)).size;
+  document.getElementById('sH').textContent=new Set(all.map(d=>d.IP_Host).filter(Boolean)).size;
+}
+
+function updateBankSel(){
+  const s=document.getElementById('qbank'),cur=s.value;
+  const banks=[...new Set(all.map(d=>d.Bank).filter(Boolean))].sort();
+  s.innerHTML='<option value="">Semua Bank</option>'+banks.map(b=>`<option${b===cur?' selected':''}>${b}</option>`).join('');
+}
+
+function doFilter(){
+  const q=document.getElementById('qid').value.trim().toLowerCase();
+  const bk=document.getElementById('qbank').value;
+  filt=all.filter(d=>(!q||(d.ID_ATM||'').toLowerCase().includes(q))&&(!bk||d.Bank===bk));
+  renderTable(filt);
+}
+
+function clearQ(){ document.getElementById('qid').value=''; document.getElementById('qbank').value=''; doFilter(); }
+
+function bbCls(bank){
+  return 'bb '+(({'NOBU':'bb-NOBU','MAYAPADA':'bb-MAYAPADA','CCBI':'bb-CCBI'})[bank]||'bb-def');
+}
+
+function renderTable(data){
+  document.getElementById('rc').textContent=data.length;
+  document.getElementById('rt').textContent=all.length;
+  const emp=`<div class="empty"><div class="ei">🔍</div><p>Tidak ada data yang cocok</p></div>`;
+  if(!data.length){
+    document.getElementById('tbody').innerHTML=`<tr><td colspan="10">${emp}</td></tr>`;
+    document.getElementById('cview').innerHTML=emp; return;
+  }
+  const adm=role==='admin';
+  document.getElementById('tbody').innerHTML=data.map((d,i)=>{
+    const idx=all.indexOf(d);
+    return `<tr>
+      <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px">${i+1}</td>
+      <td><span class="${bbCls(d.Bank)}">${d.Bank||'-'}</span></td>
+      <td><span class="mid">${d.ID_ATM||'-'}</span></td>
+      <td><span class="mloc" title="${d.Lokasi||''}">${d.Lokasi||'-'}</span></td>
+      <td><span class="mip">${d.IP_ATM||'-'}</span></td>
+      <td><span class="msub">${d.Subnet||'-'}</span></td>
+      <td><span class="mgw">${d.Gateway||'-'}</span></td>
+      <td><span class="mhost">${d.IP_Host||'-'}</span></td>
+      <td><span class="mport">${d.Port||'-'}</span></td>
+      <td><div class="acts">
+        <button class="btn b-view" onclick="openDet(${idx})">👁 Lihat</button>
+        ${adm?`<button class="btn b-amber" onclick="openEdit(${idx})">✏️</button><button class="btn b-red" onclick="openDel(${idx})">🗑️</button>`:''}
+      </div></td></tr>`;
+  }).join('');
+
+  document.getElementById('cview').innerHTML=data.map((d,i)=>{
+    const idx=all.indexOf(d);
+    return `<div class="ac">
+      <div class="ac-head">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="${bbCls(d.Bank)}">${d.Bank||'-'}</span>
+          <span class="mid" style="font-size:15px">${d.ID_ATM||'-'}</span>
+        </div>
+        <span style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px">#${i+1}</span>
+      </div>
+      <div class="ac-body">
+        <div class="af" style="margin-bottom:7px"><label>📍 Lokasi</label><div class="av tx" style="white-space:normal;font-size:12px">${d.Lokasi||'-'}</div></div>
+        <div class="ac-grid">
+          <div class="af"><label>IP ATM</label><div class="av gr">${d.IP_ATM||'-'}</div></div>
+          <div class="af"><label>Port</label><div class="av gr">${d.Port||'-'}</div></div>
+          <div class="af"><label>Subnet</label><div class="av tx">${d.Subnet||'-'}</div></div>
+          <div class="af"><label>Gateway</label><div class="av cy">${d.Gateway||'-'}</div></div>
+        </div>
+        <div class="af"><label>🖥️ IP Host</label><div class="av am">${d.IP_Host||'-'}</div></div>
+      </div>
+      <div class="ac-foot">
+        <button class="btn b-view" onclick="openDet(${idx})" style="flex:1">👁 Detail</button>
+        ${adm?`<button class="btn b-amber" onclick="openEdit(${idx})">✏️ Edit</button><button class="btn b-red" onclick="openDel(${idx})">🗑️</button>`:''}
+      </div></div>`;
+  }).join('');
+}
+
+/* ---- MODALS ---- */
+function openM(id){ document.getElementById(id).classList.add('on') }
+function closeM(id){ document.getElementById(id).classList.remove('on') }
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) closeM(o.id) }));
+
+function openAdd(){
+  editing=null;
+  document.getElementById('mFT').textContent='＋ TAMBAH ATM BARU';
+  document.getElementById('btnSub').textContent='💾 Simpan';
+  ['fBank','fId','fLok','fIp','fSub','fGw','fHost','fPort'].forEach(i=>document.getElementById(i).value='');
+  openM('mForm');
+}
+
+function openEdit(idx){
+  if(role!=='admin') return;
+  editing=all[idx];
+  document.getElementById('mFT').textContent='✏️ EDIT DATA ATM';
+  document.getElementById('btnSub').textContent='💾 Update';
+  document.getElementById('fBank').value=editing.Bank||'';
+  document.getElementById('fId').value=editing.ID_ATM||'';
+  document.getElementById('fLok').value=editing.Lokasi||'';
+  document.getElementById('fIp').value=editing.IP_ATM||'';
+  document.getElementById('fSub').value=editing.Subnet||'';
+  document.getElementById('fGw').value=editing.Gateway||'';
+  document.getElementById('fHost').value=editing.IP_Host||'';
+  document.getElementById('fPort').value=editing.Port||'';
+  openM('mForm');
+}
+
+function openDet(idx){
+  const d=all[idx];
+  document.getElementById('detC').innerHTML=`
+    <div style="text-align:center;margin-bottom:20px">
+      <span class="${bbCls(d.Bank)}" style="font-size:15px;padding:6px 18px">${d.Bank||'-'}</span>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:24px;color:var(--blue);margin-top:12px;font-weight:800;letter-spacing:2px">${d.ID_ATM||'-'}</div>
+    </div>
+    <div class="dgrid">
+      <div class="di" style="grid-column:1/-1"><label>📍 Lokasi ATM</label><div class="dv tx">${d.Lokasi||'-'}</div></div>
+      <div class="di"><label>🌐 IP ATM</label><div class="dv gr">${d.IP_ATM||'-'}</div></div>
+      <div class="di"><label>🔢 Subnet Mask</label><div class="dv tx">${d.Subnet||'-'}</div></div>
+      <div class="di"><label>🔀 Gateway</label><div class="dv cy">${d.Gateway||'-'}</div></div>
+      <div class="di"><label>🖥️ IP Host</label><div class="dv am">${d.IP_Host||'-'}</div></div>
+      <div class="di"><label>🔌 Port</label><div class="dv gr">${d.Port||'-'}</div></div>
+    </div>`;
+  openM('mDet');
+}
+
+function openDel(idx){
+  if(role!=='admin') return;
+  delT=all[idx];
+  document.getElementById('cTxt').textContent=`ATM "${delT.ID_ATM}" (${delT.Bank}) akan dihapus permanen dari sistem.`;
+  openM('mConf');
+}
+
+/* ---- CRUD ---- */
+async function postToScript(body) {
+  const r = await fetch(SCRIPT_URL, { method:'POST', redirect:'follow', body:JSON.stringify(body) });
+  const txt = await r.text();
+  try { return JSON.parse(txt); }
+  catch(e) { throw new Error('Respons server tidak valid. Pastikan URL Apps Script sudah benar dan di-deploy ulang.\n\n' + txt.substring(0,200)); }
+}
+
+async function doSubmit(){
+  const bank=document.getElementById('fBank').value.trim();
+  const id=document.getElementById('fId').value.trim();
+  const lok=document.getElementById('fLok').value.trim();
+  const ip=document.getElementById('fIp').value.trim();
+  if(!bank||!id||!lok||!ip){ toast('⚠️ Bank, ID ATM, Lokasi & IP ATM wajib diisi','err'); return; }
+  const payload={Bank:bank,ID_ATM:id,Lokasi:lok,IP_ATM:ip,
+    Subnet:document.getElementById('fSub').value.trim(),
+    Gateway:document.getElementById('fGw').value.trim(),
+    IP_Host:document.getElementById('fHost').value.trim(),
+    Port:document.getElementById('fPort').value.trim()};
+  showL(editing?'MENGUPDATE DATA...':'MENYIMPAN DATA...');
+  try {
+    const action=editing?'edit':'add';
+    if(editing) payload._rowIndex=editing._rowIndex;
+    const j = await postToScript({action,...payload});
+    if(!j.success) throw new Error(j.error||'Gagal menyimpan');
+    closeM('mForm');
+    toast(editing?'✅ Data ATM berhasil diupdate':'✅ ATM baru berhasil ditambahkan','ok');
+    await load();
+  } catch(e){ toast('❌ '+e.message,'err'); }
+  finally{ hideL(); }
+}
+
+async function doDel(){
+  if(!delT) return;
+  closeM('mConf');
+  showL('MENGHAPUS DATA...');
+  try {
+    const j = await postToScript({action:'delete',_rowIndex:delT._rowIndex});
+    if(!j.success) throw new Error(j.error||'Gagal menghapus');
+    toast('🗑️ Data ATM berhasil dihapus','ok');
+    delT=null; await load();
+  } catch(e){ toast('❌ '+e.message,'err'); }
+  finally{ hideL(); }
+}
+
+/* ---- HELPERS ---- */
+function showL(t){ document.getElementById('ltxt').textContent=t; document.getElementById('lov').classList.add('on') }
+function hideL(){ document.getElementById('lov').classList.remove('on') }
+
+function toast(msg,type){
+  const c=document.getElementById('ts');
+  const t=document.createElement('div');
+  t.className='toast t'+type; t.textContent=msg;
+  c.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(110%)'; t.style.transition='all .3s'; setTimeout(()=>t.remove(),300); },3500);
+}
+</script>
+</body>
+</html>
