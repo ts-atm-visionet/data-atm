@@ -627,6 +627,115 @@ async function doDel(){
   } catch(e){ toast('❌ '+e.message,'err'); }
   finally{ hideL(); }
 }
+  
+/* ---- IP AUTO-DOT ---- */
+function initIpInputs() {
+  document.querySelectorAll('input[data-ip]').forEach(el => {
+    el.addEventListener('keydown', ipKeyDown);
+    el.addEventListener('input',   ipInput);
+    el.addEventListener('paste',   ipPaste);
+  });
+}
+
+function ipKeyDown(e) {
+  const el   = e.target;
+  const val  = el.value;
+  const pos  = el.selectionStart;
+  const key  = e.key;
+
+  // Titik otomatis saat ketik titik atau spasi
+  if (key === '.' || key === ' ') {
+    e.preventDefault();
+    insertDot(el);
+    return;
+  }
+
+  // Backspace: kalau sebelum kursor ada titik, hapus titik juga
+  if (key === 'Backspace' && pos > 0 && val[pos - 1] === '.') {
+    e.preventDefault();
+    el.value = val.slice(0, pos - 1) + val.slice(pos);
+    setPos(el, pos - 1);
+  }
+}
+
+function ipInput(e) {
+  const el  = e.target;
+  let val   = el.value;
+  let caret = el.selectionStart;
+
+  // Hapus semua karakter selain angka dan titik
+  let clean = val.replace(/[^0-9.]/g, '');
+
+  // Batasi tiap oktet maksimal 3 digit, auto-titik kalau oktet = 3 digit
+  let octets = clean.split('.');
+  let built  = '';
+  let addedDots = 0;
+
+  for (let i = 0; i < octets.length && i < 4; i++) {
+    let oct = octets[i].slice(0, 3);
+    built += oct;
+    // Auto tambah titik kalau oktet sudah 3 angka dan bukan oktet terakhir
+    if (oct.length === 3 && i < 3 && i < octets.length - 1) {
+      built += '.';
+    } else if (i < octets.length - 1 && i < 3) {
+      built += '.';
+    }
+  }
+
+  // Batasi max 4 oktet
+  let parts = built.split('.');
+  if (parts.length > 4) parts = parts.slice(0, 4);
+  built = parts.join('.');
+
+  if (el.value !== built) {
+    const diff = built.length - val.length;
+    el.value = built;
+    setPos(el, Math.max(0, caret + diff));
+  }
+
+  // Auto-titik setelah 3 digit oktet saat user baru ketik
+  const parts2 = el.value.split('.');
+  const lastPart = parts2[parts2.length - 1];
+  if (lastPart.length === 3 && parts2.length < 4) {
+    insertDot(el);
+  }
+}
+
+function ipPaste(e) {
+  e.preventDefault();
+  const pasted = (e.clipboardData || window.clipboardData).getData('text');
+  // Terima paste IP dengan format apapun, bersihkan
+  const cleaned = pasted.replace(/[^0-9.]/g, '').split('.').slice(0,4)
+    .map(o => o.slice(0,3)).join('.');
+  e.target.value = cleaned;
+  setPos(e.target, cleaned.length);
+}
+
+function insertDot(el) {
+  const val  = el.value;
+  const pos  = el.selectionStart;
+  const dots = (val.match(/\./g) || []).length;
+  if (dots >= 3) return;        // sudah 4 oktet
+  if (val === '') return;
+  if (val.endsWith('.')) return; // sudah ada titik di ujung
+
+  // Cek oktet terakhir tidak kosong
+  const parts = val.slice(0, pos).split('.');
+  if (parts[parts.length-1] === '') return;
+
+  el.value = val.slice(0, pos) + '.' + val.slice(pos);
+  setPos(el, pos + 1);
+}
+
+function setPos(el, pos) {
+  requestAnimationFrame(() => {
+    el.setSelectionRange(pos, pos);
+  });
+}
+
+// Inisialisasi saat halaman siap
+document.addEventListener('DOMContentLoaded', initIpInputs);
+  
 
 /* ---- HELPERS ---- */
 function showL(t){ document.getElementById('ltxt').textContent=t; document.getElementById('lov').classList.add('on') }
@@ -643,3 +752,4 @@ function toast(msg,type){
 </body>
 
 </html>
+
