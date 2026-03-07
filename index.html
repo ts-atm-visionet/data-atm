@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>TS ATM Monitor</title>
+<title>ATM Data Monitor</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -340,15 +340,15 @@ td{padding:11px 14px;vertical-align:middle}
       <div class="fg"><label>Bank ★</label>
         <select id="fBank">
           <option value="">-- Pilih Bank --</option>
-          <option>NOBU</option><option>Mayapada</option><option>CCBI</option>
+          <option>Nobu</option><option>Mayapada</option><option>CCBI</option>
           <option>Lainnya</option>
         </select></div>
-      <div class="fg"><label>ID ATM ★</label><input type="text" id="fId" placeholder="ATMID-123456"></div>
+      <div class="fg"><label>ID ATM ★</label><input type="text" id="fId" placeholder="123456"></div>
       <div class="fg full"><label>Lokasi ATM ★</label><input type="text" id="fLok" placeholder="Jl. Sudirman No.1, Jakarta Pusat"></div>
-      <div class="fg"><label>IP ATM ★</label><input type="text" id="fIp" placeholder="192.168.1.100"></div>
-      <div class="fg"><label>Subnet Mask</label><input type="text" id="fSub" placeholder="255.255.255.0"></div>
-      <div class="fg"><label>Gateway</label><input type="text" id="fGw" placeholder="192.168.1.1"></div>
-      <div class="fg"><label>IP Host</label><input type="text" id="fHost" placeholder="10.0.0.1"></div>
+      <div class="fg"><label>IP ATM ★</label><input type="text" id="fIp" data-ip="true" placeholder="192 . 168 . 1 . 100" maxlength="15" autocomplete="off" inputmode="numeric"></div>
+      <div class="fg"><label>Subnet Mask</label><input type="text" id="fSub" data-ip="true" placeholder="255 . 255 . 255 . 0" maxlength="15" autocomplete="off" inputmode="numeric"></div>
+      <div class="fg"><label>Gateway</label><input type="text" id="fGw" data-ip="true" placeholder="192 . 168 . 1 . 1" maxlength="15" autocomplete="off" inputmode="numeric"></div>
+      <div class="fg"><label>IP Host</label><input type="text" id="fHost" data-ip="true" placeholder="10 . 0 . 0 . 1" maxlength="15" autocomplete="off" inputmode="numeric"></div>
       <div class="fg"><label>Port</label><input type="text" id="fPort" placeholder="8080"></div>
     </div>
     <div class="mfoot">
@@ -472,7 +472,7 @@ function doFilter(){
 function clearQ(){ document.getElementById('qid').value=''; document.getElementById('qbank').value=''; doFilter(); }
 
 function bbCls(bank){
-  return 'bb '+(({'NOBU':'bb-NOBU','MAYAPADA':'bb-MAYAPADA','CCBI':'bb-CCBI'})[bank]||'bb-def');
+  return 'bb '+(({'BRI':'bb-BRI','BCA':'bb-BCA','Mandiri':'bb-Mandiri','BNI':'bb-BNI','BTN':'bb-BTN','BSI':'bb-BSI'})[bank]||'bb-def');
 }
 
 function renderTable(data){
@@ -540,6 +540,7 @@ function openAdd(){
   document.getElementById('btnSub').textContent='💾 Simpan';
   ['fBank','fId','fLok','fIp','fSub','fGw','fHost','fPort'].forEach(i=>document.getElementById(i).value='');
   openM('mForm');
+  initIpInputs();
 }
 
 function openEdit(idx){
@@ -627,7 +628,8 @@ async function doDel(){
   } catch(e){ toast('❌ '+e.message,'err'); }
   finally{ hideL(); }
 }
-  
+
+
 /* ---- IP AUTO-DOT ---- */
 function initIpInputs() {
   document.querySelectorAll('input[data-ip]').forEach(el => {
@@ -735,7 +737,6 @@ function setPos(el, pos) {
 
 // Inisialisasi saat halaman siap
 document.addEventListener('DOMContentLoaded', initIpInputs);
-  
 
 /* ---- HELPERS ---- */
 function showL(t){ document.getElementById('ltxt').textContent=t; document.getElementById('lov').classList.add('on') }
@@ -750,6 +751,7 @@ function toast(msg,type){
 }
 </script>
 </body>
-
 </html>
+
+
 
