@@ -343,13 +343,13 @@ td{padding:11px 14px;vertical-align:middle}
           <option>NOBU</option><option>Mayapada</option><option>CCBI</option>
           
         </select></div>
-      <div class="fg"><label>ID ATM ★</label><input type="text" id="fId" placeholder="123456"></div>
-      <div class="fg full"><label>Lokasi ATM ★</label><input type="text" id="fLok" placeholder="Jl. Sudirman No.1, Jakarta Pusat"></div>
-      <div class="fg"><label>IP ATM ★</label><input type="text" id="fIp" data-ip="true" placeholder="192.168.1.100" maxlength="18" autocomplete="off" inputmode="numeric"></div>
-      <div class="fg"><label>Subnet</label><input type="text" id="fSub" data-ip="true" placeholder="255.255.255.224" maxlength="18" autocomplete="off" inputmode="numeric"></div>
-      <div class="fg"><label>Gateway</label><input type="text" id="fGw" data-ip="true" placeholder="192.168.1.1" maxlength="18" autocomplete="off" inputmode="numeric"></div>
-      <div class="fg"><label>IP Host</label><input type="text" id="fHost" data-ip="true" placeholder="10.0.0.1" maxlength="18" autocomplete="off" inputmode="numeric"></div>
-      <div class="fg"><label>Port</label><input type="text" id="fPort" placeholder="8080"></div>
+      <div class="fg"><label>ID ATM ★</label><input type="text" id="fId" placeholder="123456" maxlength="6" inputmode="numeric"></div>
+      <div class="fg full"><label>Lokasi ATM ★</label><input type="text" id="fLok" placeholder="Kcp. Belanda"></div>
+      <div class="fg"><label>IP ATM ★</label><input type="text" id="fIp" data-ip="true" placeholder="192.168.1.100" maxlength="15" autocomplete="off" inputmode="numeric"></div>
+      <div class="fg"><label>Subnet</label><input type="text" id="fSub" data-ip="true" placeholder="255.255.255.224" maxlength="15" autocomplete="off" inputmode="numeric"></div>
+      <div class="fg"><label>Gateway</label><input type="text" id="fGw" data-ip="true" placeholder="192.168.1.1" maxlength="15" autocomplete="off" inputmode="numeric"></div>
+      <div class="fg"><label>IP Host</label><input type="text" id="fHost" data-ip="true" placeholder="192.168.0.1" maxlength="15" autocomplete="off" inputmode="numeric"></div>
+      <div class="fg"><label>Port</label><input type="text" id="fPort" placeholder="8080" maxlength="4" inputmode="numeric"></div>
     </div>
     <div class="mfoot">
       <button class="btn b-ghost" onclick="closeM('mForm')">Batal</button>
@@ -786,3 +786,4 @@ function toast(msg,type){
 </script>
 </body>
 </html>
+
