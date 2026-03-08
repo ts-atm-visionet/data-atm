@@ -122,9 +122,9 @@ td{padding:11px 14px;vertical-align:middle}
 
 /* BANK BADGES */
 .bb{display:inline-flex;align-items:center;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
-.bb-NOBU{background:#003caa20;border:1.5px solid #0060ff55;color:#e90a15}
-.bb-MAYAPADA{background:#00806020;border:1.5px solid #00cc9055;color:#6b0ae9}
-.bb-CCBI{background:#c08000;color:#000;border:1.5px solid #3babf7}
+.bb-NOBU{background:#003caa20;border:1.5px solid #0060ff55;color:#f50b0b}
+.bb-Mayapada{background:#00806020;border:1.5px solid #00cc9055;color:#4b13e6}
+.bb-CCBI{background:#00806020;border:1.5px solid #00cc9055;color:#136ee6}
 
 .mid{font-family:'JetBrains Mono',monospace;color:var(--blue);font-size:13px;font-weight:700;letter-spacing:.5px}
 .mip{font-family:'JetBrains Mono',monospace;color:var(--green);font-size:13px;font-weight:600}
@@ -234,7 +234,7 @@ td{padding:11px 14px;vertical-align:middle}
 <div id="loginScreen">
   <div class="lcard">
     <div class="lhead">
-      <img src="https://i.ibb.co.com/mC9Sg3tr/ts-atm.png" alt="Atm" style="width:90px;height:90px;filter:drop-shadow(0 4px 12px rgba(201,162,39,.4))">
+      <div class="lico">🏧</div>
       <h2>TS ATM Monitor</h2>
       <p>Data Management System</p>
     </div>
@@ -268,7 +268,7 @@ td{padding:11px 14px;vertical-align:middle}
   <header>
     <div class="hinner">
       <div class="hbrand">
-        <img src="https://i.ibb.co.com/mC9Sg3tr/ts-atm.png" alt="Atm" style="width:90px;height:90px;filter:drop-shadow(0 4px 12px rgba(201,162,39,.4))">
+        <div class="hlogo">🏧</div>
         <div class="hbrand-t"><h1>TS ATM Monitor</h1><p>Data Management System</p></div>
       </div>
       <div class="hclock">
@@ -341,14 +341,14 @@ td{padding:11px 14px;vertical-align:middle}
         <select id="fBank">
           <option value="">-- Pilih Bank --</option>
           <option>NOBU</option><option>Mayapada</option><option>CCBI</option>
-          <option>Lainnya</option>
+          
         </select></div>
       <div class="fg"><label>ID ATM ★</label><input type="text" id="fId" placeholder="123456"></div>
       <div class="fg full"><label>Lokasi ATM ★</label><input type="text" id="fLok" placeholder="Jl. Sudirman No.1, Jakarta Pusat"></div>
-      <div class="fg"><label>IP ATM ★</label><input type="text" id="fIp" data-ip="true" placeholder="192 . 168 . 1 . 100" maxlength="15" autocomplete="off" inputmode="numeric"></div>
-      <div class="fg"><label>Subnet Mask</label><input type="text" id="fSub" data-ip="true" placeholder="255 . 255 . 255 . 0" maxlength="15" autocomplete="off" inputmode="numeric"></div>
-      <div class="fg"><label>Gateway</label><input type="text" id="fGw" data-ip="true" placeholder="192 . 168 . 1 . 1" maxlength="15" autocomplete="off" inputmode="numeric"></div>
-      <div class="fg"><label>IP Host</label><input type="text" id="fHost" data-ip="true" placeholder="10 . 0 . 0 . 1" maxlength="15" autocomplete="off" inputmode="numeric"></div>
+      <div class="fg"><label>IP ATM ★</label><input type="text" id="fIp" data-ip="true" placeholder="192.168.1.100" maxlength="18" autocomplete="off" inputmode="numeric"></div>
+      <div class="fg"><label>Subnet</label><input type="text" id="fSub" data-ip="true" placeholder="255.255.255.224" maxlength="18" autocomplete="off" inputmode="numeric"></div>
+      <div class="fg"><label>Gateway</label><input type="text" id="fGw" data-ip="true" placeholder="192.168.1.1" maxlength="18" autocomplete="off" inputmode="numeric"></div>
+      <div class="fg"><label>IP Host</label><input type="text" id="fHost" data-ip="true" placeholder="10.0.0.1" maxlength="18" autocomplete="off" inputmode="numeric"></div>
       <div class="fg"><label>Port</label><input type="text" id="fPort" placeholder="8080"></div>
     </div>
     <div class="mfoot">
@@ -387,7 +387,7 @@ td{padding:11px 14px;vertical-align:middle}
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGkdOXtq-VX_XIUAK3peIJ7RyXb-6o1CGqtpGVPuRuDHQV6LBsFzJg0AKZVLAeo5Ld/exec';
 
 // ★ GANTI KODE AKSES SESUAI KEBUTUHAN ★
-const PASS = { tech:'teknisiATM', admin:'TSATM' };
+const PASS = { tech:'teknisiatm', admin:'tsatm' };
 // ============================================================
 
 let role=null, tab='tech', all=[], filt=[], editing=null, delT=null;
@@ -631,107 +631,141 @@ async function doDel(){
 
 
 /* ---- IP AUTO-DOT ---- */
+// Pendekatan: pakai keydown saja, tangkap setiap angka & atur titik secara manual
+// Lebih stabil daripada event 'input' yang sering conflict di mobile & desktop
+
 function initIpInputs() {
-  document.querySelectorAll('input[data-ip]').forEach(el => {
+  document.querySelectorAll('input[data-ip]').forEach(function(el) {
+    // Hapus listener lama kalau ada (hindari dobel bind saat openAdd/openEdit)
+    el.removeEventListener('keydown', ipKeyDown);
+    el.removeEventListener('paste',   ipPaste);
+    el.removeEventListener('blur',    ipBlur);
     el.addEventListener('keydown', ipKeyDown);
-    el.addEventListener('input',   ipInput);
     el.addEventListener('paste',   ipPaste);
+    el.addEventListener('blur',    ipBlur);
   });
 }
 
 function ipKeyDown(e) {
-  const el   = e.target;
-  const val  = el.value;
-  const pos  = el.selectionStart;
-  const key  = e.key;
+  const el  = e.target;
+  const key = e.key;
 
-  // Titik otomatis saat ketik titik atau spasi
-  if (key === '.' || key === ' ') {
+  // Izinkan: Tab, Arrow, Home, End, Delete, Ctrl/Cmd combo
+  if (['Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown',
+       'Home','End','Delete'].includes(key)) return;
+  if (e.ctrlKey || e.metaKey) return;
+
+  // Backspace — tangani sendiri
+  if (key === 'Backspace') {
     e.preventDefault();
-    insertDot(el);
+    const pos = el.selectionStart;
+    const end = el.selectionEnd;
+    let val   = el.value;
+    if (pos !== end) {
+      // Ada selection, hapus selection
+      el.value = val.slice(0, pos) + val.slice(end);
+      setPos(el, pos);
+    } else if (pos > 0) {
+      // Hapus 1 karakter sebelum kursor (angka atau titik)
+      el.value = val.slice(0, pos - 1) + val.slice(pos);
+      setPos(el, pos - 1);
+    }
     return;
   }
 
-  // Backspace: kalau sebelum kursor ada titik, hapus titik juga
-  if (key === 'Backspace' && pos > 0 && val[pos - 1] === '.') {
+  // Titik / spasi = pindah ke oktet berikutnya
+  if (key === '.' || key === ' ') {
     e.preventDefault();
-    el.value = val.slice(0, pos - 1) + val.slice(pos);
-    setPos(el, pos - 1);
-  }
-}
-
-function ipInput(e) {
-  const el  = e.target;
-  let val   = el.value;
-  let caret = el.selectionStart;
-
-  // Hapus semua karakter selain angka dan titik
-  let clean = val.replace(/[^0-9.]/g, '');
-
-  // Batasi tiap oktet maksimal 3 digit, auto-titik kalau oktet = 3 digit
-  let octets = clean.split('.');
-  let built  = '';
-  let addedDots = 0;
-
-  for (let i = 0; i < octets.length && i < 4; i++) {
-    let oct = octets[i].slice(0, 3);
-    built += oct;
-    // Auto tambah titik kalau oktet sudah 3 angka dan bukan oktet terakhir
-    if (oct.length === 3 && i < 3 && i < octets.length - 1) {
-      built += '.';
-    } else if (i < octets.length - 1 && i < 3) {
-      built += '.';
+    const pos  = el.selectionStart;
+    const val  = el.value;
+    const dots = (val.match(/\./g) || []).length;
+    // Jangan tambah titik kalau sudah 3 titik, atau oktet sebelum titik kosong
+    const beforeCaret = val.slice(0, pos);
+    const lastOctet   = beforeCaret.split('.').pop();
+    if (dots < 3 && lastOctet.length > 0 && !beforeCaret.endsWith('.')) {
+      el.value = val.slice(0, pos) + '.' + val.slice(pos);
+      setPos(el, pos + 1);
     }
+    return;
   }
 
-  // Batasi max 4 oktet
-  let parts = built.split('.');
-  if (parts.length > 4) parts = parts.slice(0, 4);
-  built = parts.join('.');
-
-  if (el.value !== built) {
-    const diff = built.length - val.length;
-    el.value = built;
-    setPos(el, Math.max(0, caret + diff));
+  // Hanya izinkan angka 0-9
+  if (!/^[0-9]$/.test(key)) {
+    e.preventDefault();
+    return;
   }
 
-  // Auto-titik setelah 3 digit oktet saat user baru ketik
-  const parts2 = el.value.split('.');
-  const lastPart = parts2[parts2.length - 1];
-  if (lastPart.length === 3 && parts2.length < 4) {
-    insertDot(el);
+  // Angka: cek apakah oktet sekarang sudah 3 digit
+  e.preventDefault();
+  const pos  = el.selectionStart;
+  const end  = el.selectionEnd;
+  let val    = el.value;
+
+  // Kalau ada teks terseleksi, ganti dulu
+  if (pos !== end) {
+    val = val.slice(0, pos) + val.slice(end);
+  }
+
+  // Hitung oktet saat ini (berapa digit di oktet aktif)
+  const beforeCaret  = val.slice(0, pos);
+  const afterCaret   = val.slice(pos !== end ? pos : pos);
+  const octets       = beforeCaret.split('.');
+  const currentOctet = octets[octets.length - 1];
+  const dots         = (val.match(/\./g) || []).length;
+
+  // Kalau oktet sudah 3 digit, blok
+  if (currentOctet.length >= 3) {
+    // Auto-titik jika belum 3 titik dan karakter berikutnya bukan titik
+    if (dots < 3 && val[pos] !== '.') {
+      val = val.slice(0, pos) + '.' + key + val.slice(pos);
+      el.value = val.slice(0, 15); // max 15 char IPv4
+      setPos(el, pos + 2);
+    }
+    return;
+  }
+
+  // Sisipkan angka
+  val = val.slice(0, pos) + key + val.slice(pos !== end ? pos : pos);
+  el.value = val.slice(0, 15);
+  const newPos = pos + 1;
+
+  // Setelah insert, cek apakah oktet kini 3 digit → auto titik
+  const newBefore  = el.value.slice(0, newPos);
+  const newOctets  = newBefore.split('.');
+  const newOctet   = newOctets[newOctets.length - 1];
+  const newDots    = (el.value.match(/\./g) || []).length;
+
+  if (newOctet.length === 3 && newDots < 3) {
+    // Sisipkan titik setelah posisi baru
+    const cur = el.value;
+    el.value  = cur.slice(0, newPos) + '.' + cur.slice(newPos);
+    el.value  = el.value.slice(0, 15);
+    setPos(el, newPos + 1);
+  } else {
+    setPos(el, newPos);
   }
 }
 
 function ipPaste(e) {
   e.preventDefault();
-  const pasted = (e.clipboardData || window.clipboardData).getData('text');
-  // Terima paste IP dengan format apapun, bersihkan
-  const cleaned = pasted.replace(/[^0-9.]/g, '').split('.').slice(0,4)
-    .map(o => o.slice(0,3)).join('.');
+  const raw     = (e.clipboardData || window.clipboardData).getData('text');
+  // Bersihkan: hanya angka dan titik, tiap oktet max 3 digit, max 4 oktet
+  const cleaned = raw.replace(/[^0-9.]/g, '')
+    .split('.').slice(0, 4)
+    .map(function(o){ return o.slice(0, 3); })
+    .join('.');
   e.target.value = cleaned;
   setPos(e.target, cleaned.length);
 }
 
-function insertDot(el) {
-  const val  = el.value;
-  const pos  = el.selectionStart;
-  const dots = (val.match(/\./g) || []).length;
-  if (dots >= 3) return;        // sudah 4 oktet
-  if (val === '') return;
-  if (val.endsWith('.')) return; // sudah ada titik di ujung
-
-  // Cek oktet terakhir tidak kosong
-  const parts = val.slice(0, pos).split('.');
-  if (parts[parts.length-1] === '') return;
-
-  el.value = val.slice(0, pos) + '.' + val.slice(pos);
-  setPos(el, pos + 1);
+function ipBlur(e) {
+  // Saat keluar dari field, bersihkan trailing titik
+  e.target.value = e.target.value.replace(/\.+$/, '');
 }
 
 function setPos(el, pos) {
-  requestAnimationFrame(() => {
-    el.setSelectionRange(pos, pos);
+  requestAnimationFrame(function() {
+    try { el.setSelectionRange(pos, pos); } catch(err){}
   });
 }
 
@@ -752,8 +786,3 @@ function toast(msg,type){
 </script>
 </body>
 </html>
-
-
-
-
-
