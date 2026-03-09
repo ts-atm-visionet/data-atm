@@ -414,7 +414,7 @@ function startApp() {
   document.getElementById('app').style.display='block';
   const rb=document.getElementById('rb');
   if(role==='admin'){ rb.textContent='🔐 ADMIN'; rb.className='rbadge admin'; document.getElementById('btnAdd').style.display='flex'; }
-  else              { rb.textContent='🔧 TEKNISI'; rb.className='rbadge tech'; document.getElementById('btnAdd').style.display='none'; }
+  else              { rb.textContent='🔧 TEKNISI'; rb.className='rbadge tech'; document.getElementById('btnAdd').style.display='flex'; }
   if(SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE') document.getElementById('banner').style.display='block';
   setInterval(()=>{
     const n=new Date();
@@ -786,6 +786,7 @@ function toast(msg,type){
 </script>
 </body>
 </html>
+
 
 
 
